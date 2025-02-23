@@ -53,11 +53,19 @@ class AvailableCourtsScreen extends StatelessWidget {
                       Text("${court['price']} per hour", style: TextStyle(fontSize: 16)),
                     ],
                   ),
+                  // Show Availability ONLY for Football Courts
+                  if (court.containsKey('availability'))
+                    Row(
+                      children: [
+                        Icon(Icons.sports_soccer, color: Colors.blue),
+                        SizedBox(width: 5),
+                        Text("Available: ${court['availability'].join(', ')}", style: TextStyle(fontSize: 16)),
+                      ],
+                    ),
                 ],
               ),
               trailing: Icon(Icons.arrow_forward_ios),
               onTap: () {
-                // Navigate to Booking Screen with images, rating, and price
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -66,6 +74,7 @@ class AvailableCourtsScreen extends StatelessWidget {
                       courtImages: court['images'],
                       rating: court['rating'],
                       price: court['price'],
+                      availability: court.containsKey('availability') ? court['availability'] : [],
                     ),
                   ),
                 );

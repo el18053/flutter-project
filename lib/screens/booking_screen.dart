@@ -5,14 +5,16 @@ class BookingScreen extends StatefulWidget {
   final List<String> courtImages;
   final double rating;
   final double price;
+  final List<String> availability; // New field for football courts
 
-  BookingScreen({required this.courtName, required this.courtImages, required this.rating, required this.price});
+  BookingScreen({required this.courtName, required this.courtImages, required this.rating, required this.price, required this.availability});
 
   @override
   _BookingScreenState createState() => _BookingScreenState();
 }
 
 class _BookingScreenState extends State<BookingScreen> {
+  String? selectedAvailability;
   String? selectedTimeSlot;
   int _currentImageIndex = 0;
   late PageController _pageController;
@@ -63,105 +65,63 @@ class _BookingScreenState extends State<BookingScreen> {
       appBar: AppBar(
         title: Text("Book ${widget.courtName}"),
         backgroundColor: Colors.deepPurple,
-        centerTitle: true,
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Image Carousel
-          SizedBox(
-            height: 200,
-            child: PageView.builder(
-              controller: _pageController,
-              itemCount: widget.courtImages.length,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentImageIndex = index;
-                });
-              },
-              itemBuilder: (context, index) {
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.asset(widget.courtImages[index], fit: BoxFit.cover),
-                );
-              },
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              height: 200,
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: widget.courtImages.length,
+                itemBuilder: (context, index) {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.asset(widget.courtImages[index], fit: BoxFit.cover),
+                  );
+                },
+              ),
             ),
-          ),
-
-          // Image Dots Indicator
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(widget.courtImages.length, (index) {
-              return Container(
-                margin: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                width: _currentImageIndex == index ? 10 : 8,
-                height: _currentImageIndex == index ? 10 : 8,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _currentImageIndex == index ? Colors.deepPurple : Colors.grey,
-                ),
-              );
-            }),
-          ),
-
-          // Title & Rating
-          Text(widget.courtName, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.star, color: Colors.yellow, size: 24),
-              SizedBox(width: 5),
-              Text("${widget.rating} / 10"),
-            ],
-          ),
-          SizedBox(height: 10),
-
-          // Price
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(width: 5),
-              Text("\$${widget.price} per hour", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ],
-          ),
-          SizedBox(height: 10),
-
-          // Select Time Slot
-          Text("Select a Time Slot", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.all(10),
-              itemCount: timeSlots.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(timeSlots[index]),
-                  leading: Radio<String>(
-                    value: timeSlots[index],
-                    groupValue: selectedTimeSlot,
+            Text(widget.courtName, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text("Rating: ${widget.rating}/10"),
+            Text("Price: \$${widget.price} per hour"),
+            if (widget.availability.isNotEmpty)
+              Column(
+                children: widget.availability.map((option) {
+                  return RadioListTile<String>(
+                    title: Text(option),
+                    value: option,
+                    groupValue: selectedAvailability,
                     onChanged: (value) {
                       setState(() {
-                        selectedTimeSlot = value;
+                        selectedAvailability = value;
                       });
                     },
-                  ),
-                );
-              },
-            ),
-          ),
-
-          // Booking Button
-          Padding(
-            padding: EdgeInsets.all(16),
-            child: ElevatedButton(
-              onPressed: _confirmBooking,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple,
-                padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                  );
+                }).toList(),
               ),
-              child: Text("Confirm Booking", style: TextStyle(fontSize: 18, color: Colors.white)),
+            Text("Select a Time Slot", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Column(
+              children: timeSlots.map((slot) {
+                return RadioListTile<String>(
+                  title: Text(slot),
+                  value: slot,
+                  groupValue: selectedTimeSlot,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedTimeSlot = value;
+                    });
+                  },
+                );
+              }).toList(),
             ),
-          ),
-        ],
+            ElevatedButton(
+              onPressed: _confirmBooking,
+              child: Text("Confirm Booking"),
+            ),
+          ],
+        ),
       ),
     );
   }
